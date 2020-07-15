@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Settings - Edit the names of the object and executable files.
-objects1 = main.obj
+objects1 = print.obj main.obj
 dest = main.exe
 
 # =============================================================================
