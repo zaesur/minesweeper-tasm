@@ -63,7 +63,7 @@ INCLUDE "cell.inc"
 CODESEG
 
 proc printHeader
-    arg @@number:dword
+    arg @@numberOfColumns:dword
     uses eax, ecx, edx
 
     mov ah, 02h
@@ -71,19 +71,18 @@ proc printHeader
     int 21h
     int 21h
     int 21h
-    int 21h
-    mov ecx, [@@number]
+    mov ecx, [@@numberOfColumns]
 @@repeat:
-    mov edx, [@@number]
+    mov edx, [@@numberOfColumns]
     sub edx, ecx
     add edx, '0'
     int 21h
     mov dl, ' '
     int 21h
     int 21h
-    int 21h
     loop @@repeat
 
+    ; print a new line
     mov ah, 09h
 	mov edx, offset newline
     int 21h
@@ -129,6 +128,51 @@ proc printCell
     
     ret
 endp printCell
+
+proc printRow
+    arg @@rowNumber:dword, @@numberOfCells:dword, @@rowStart:dword
+    uses eax, ecx, ebx, edx
+    
+    mov ah, 02h    
+    mov edx, [@@rowNumber]
+    add dl, '0'
+    int 21h
+    mov dl, ' '
+    int 21h
+
+    mov ebx, [@@rowStart]
+    mov ecx, [@@numberOfCells]
+@@repeat:
+    call printCell, ebx
+    add ebx, SIZE Cell
+    loop @@repeat
+    
+    ; print a new line
+    mov ah, 09h
+	mov edx, offset newline
+    int 21h
+    
+    ret
+endp printRow
+
+proc printBoard
+    arg @@gridSize:dword, @@boardPointer:dword
+    
+    ; print the header
+    call printHeader, [@@gridSize]
+    
+    ; print the rows
+    mov edx, [@@boardPointer]
+    mov ecx, [@@gridSize]
+@@repeat:
+    mov ebx, [@@gridSize]
+    sub ebx, ecx
+    call printRow, ebx, [@@gridSize], edx
+    add edx, [@@gridSize]
+    loop @@repeat
+
+    ret
+endp printBoard
 
 DATASEG
     newline db 13, 10, '$'

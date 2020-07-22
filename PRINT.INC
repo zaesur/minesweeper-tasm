@@ -1,1 +1,4 @@
-GLOBAL	printCell:PROC
+GLOBAL	printCell:PROC, \
+        printRow:PROC, \
+        printHeader:PROC, \
+        printBoard:PROC
