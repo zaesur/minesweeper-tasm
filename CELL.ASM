@@ -65,6 +65,30 @@ proc incCellCount
     ret
 endp incCellCount
 
+proc incNeighbours
+    arg @@boardPointer:dword, @@x:dword, @@y:dword
+    uses ecx
+    
+    dec [@@x]
+    dec [@@y]
+
+    mov ecx, 3
+@@outerloop:
+    push ecx
+    push [@@x]
+    mov ecx, 3
+@@innerloop:
+    call incCellCount, [@@boardPointer], [@@x], [@@y]
+    inc [@@x]
+    loop @@innerloop
+    pop [@@x]
+    pop ecx
+    inc [@@y]
+    loop @@outerloop
+
+    ret
+endp incNeighbours
+
 proc placeMines
     arg @@boardPointer:dword, @@numberOfMines:dword
     local @@x, @@y
@@ -96,7 +120,7 @@ proc placeMines
 
     ; else place the mine and increment its neighbours
     mov [(Cell ptr ebx).isMine], 1
-    ; TODO: increment the neighbours
+    call incNeighbours, [@@boardPointer], [@@x], [@@y]
     loop @@placeMine
 
 @@skip:
