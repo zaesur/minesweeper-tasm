@@ -12,16 +12,16 @@ INCLUDE "rand.inc"
 CODESEG
 
 proc validateIndices
-    arg @@rowIndex:dword, @@columnIndex
+    arg @@x:dword, @@y
     mov eax, 0
 
-    cmp [@@rowIndex], 0
+    cmp [@@x], 0
     jl @@skip
-    cmp [@@rowIndex], GRID_SIZE
+    cmp [@@x], GRID_SIZE
     jge @@skip
-    cmp [@@columnIndex], 0
+    cmp [@@y], 0
     jl @@skip
-    cmp [@@columnIndex], GRID_SIZE
+    cmp [@@y], GRID_SIZE
     jge @@skip
     mov eax, 1
 
@@ -30,14 +30,14 @@ proc validateIndices
 endp validateIndices
 
 proc getCell
-    arg @@boardPointer:dword, @@rowIndex:dword, @@columnIndex:dword
+    arg @@boardPointer:dword, @@x:dword, @@y:dword
     uses eax, ecx
 
     ; EAX <- (rowIndex * gridSize) + columnIndex
-    mov eax, [@@rowIndex]
+    mov eax, [@@x]
     mov ecx, GRID_SIZE
     mul ecx
-    add eax, [@@columnIndex]
+    add eax, [@@y]
 
     ; EBX <- boardPointer + (EAX * cellSize)
     mov ecx, SIZE Cell
@@ -49,16 +49,16 @@ proc getCell
 endp getCell
 
 proc incCellCount
-    arg @@boardPointer:dword, @@rowIndex:dword, @@columnIndex:dword
+    arg @@boardPointer:dword, @@x:dword, @@y:dword
     uses eax, ebx
 
     ; check if the indices are within boundaries
-    call validateIndices, [@@rowIndex], [@@columnIndex]
+    call validateIndices, [@@x], [@@y]
     cmp eax, 0
     je @@skip
 
     ; increment the cell count
-    call getCell, [@@boardPointer], [@@rowIndex], [@@columnIndex]
+    call getCell, [@@boardPointer], [@@x], [@@y]
     inc [(Cell ptr ebx).count]
 
 @@skip:
@@ -69,6 +69,7 @@ proc incNeighbours
     arg @@boardPointer:dword, @@x:dword, @@y:dword
     uses ecx
     
+    ; start from (x-1, y-1)
     dec [@@x]
     dec [@@y]
 
@@ -128,19 +129,34 @@ proc placeMines
 endp placeMines
 
 proc revealCell
-    arg @@boardPointer:dword, @@rowIndex:dword, @@columnIndex:dword
+    arg @@boardPointer:dword, @@x:dword, @@y:dword
     uses eax, ebx, ecx
+
+    call validateIndices, [@@x], [@@y]
+    cmp eax, 0
+    je @@skip
     
     ; get the cell in EBX
-    call getCell, [@@boardPointer], [@@rowIndex], [@@columnIndex]
+    call getCell, [@@boardPointer], [@@x], [@@y]
 
     ; check if the cell has already been revealed, else reveal
     cmp [(Cell ptr ebx).isRevealed], 1
     je @@skip
     mov [(Cell ptr ebx).isRevealed], 1
 
-    ; TODO: if there are no neighbouring mines, flood the neighbouring cells
-    
+    ; if there are no neighbouring mines (count = 0), flood the neighbouring cells
+    cmp [(Cell ptr ebx).count], 0
+    jg @@skip
+    dec [@@x]
+    call revealCell, [@@boardPointer], [@@x], [@@y]
+    add [@@x], 2
+    call revealCell, [@@boardPointer], [@@x], [@@y]
+    dec [@@x]
+    dec [@@y]
+    call revealCell, [@@boardPointer], [@@x], [@@y]
+    add [@@y], 2
+    call revealCell, [@@boardPointer], [@@x], [@@y]
+
 @@skip:
     ret
 endp revealCell

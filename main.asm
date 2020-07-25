@@ -13,6 +13,7 @@ proc main
     cld
     
     call placeMines, offset board, GRID_SIZE
+    call revealCell, offset board, 0, 0
     call printBoard, offset board
 
     mov 	eax, 4c00h      ; AH = 4Ch - Exit To DOS
@@ -22,6 +23,6 @@ endp main
 STACK 100h
 
 DATASEG
-    board Cell GRID_SIZE*GRID_SIZE dup(<0,1,0>)
+    board Cell GRID_SIZE*GRID_SIZE dup(<0,0,0>)
 
 end main
