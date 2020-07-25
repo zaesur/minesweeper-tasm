@@ -1,54 +1,3 @@
-;=============================================================================
-; 32-bit Assembler Random Number Generation.
-;
-; For use under DMPI 0.9 protected mode.
-;
-; The pseudo random generator is basically a Linear congruential generator, as
-; explained on https://en.wikipedia.org/wiki/Linear_congruential_generator.
-;
-; This implementation assumes a modulo of 2^32.
-;
-; The constants are use from C99 and C11.
-;
-; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;	
-;	This is a corrected version with a uniform output random distribution
-;	David Blinder, 2017
-;	
-; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;
-; Copyright (c) 2015, Tim Bruylants <tim.bruylants@gmail.com>
-; All rights reserved.
-;
-; Redistribution and use in source and binary forms, with or without
-; modification, are permitted provided that the following conditions
-; are met:
-;
-; 1. Redistributions of source code must retain the above copyright notice,
-;    this list of conditions and the following disclaimer.
-;
-; 2. Redistributions in binary form must reproduce the above copyright notice,
-;    this list of conditions and the following disclaimer in the documentation
-;    and/or other materials provided with the distribution.
-;
-; 3. Neither the name of the copyright holder nor the names of its
-;    contributors may be used to endorse or promote products derived from this
-;    software without specific prior written permission.
-;
-; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-; POSSIBILITY OF SUCH DAMAGE.
-;
-;=============================================================================
-
 IDEAL
 P386
 MODEL FLAT, C
@@ -63,7 +12,6 @@ INCLUDE "cell.inc"
 CODESEG
 
 proc printHeader
-    arg @@numberOfColumns:dword
     uses eax, ecx, edx
 
     mov ah, 02h
@@ -71,9 +19,9 @@ proc printHeader
     int 21h
     int 21h
     int 21h
-    mov ecx, [@@numberOfColumns]
+    mov ecx, GRID_SIZE
 @@repeat:
-    mov edx, [@@numberOfColumns]
+    mov edx, GRID_SIZE
     sub edx, ecx
     add edx, '0'
     int 21h
@@ -91,10 +39,10 @@ proc printHeader
 endp printHeader
 
 proc printCell
-    arg @@cell:dword
+    arg @@cellPointer:dword
     uses eax, ebx
     
-    mov ebx, [@@cell]
+    mov ebx, [@@cellPointer]
     mov ah, 02h
     
     ; print the border
@@ -130,7 +78,7 @@ proc printCell
 endp printCell
 
 proc printRow
-    arg @@rowNumber:dword, @@numberOfCells:dword, @@rowStart:dword
+    arg @@rowNumber:dword, @@rowStart:dword
     uses eax, ecx, ebx, edx
     
     mov ah, 02h    
@@ -141,7 +89,7 @@ proc printRow
     int 21h
 
     mov ebx, [@@rowStart]
-    mov ecx, [@@numberOfCells]
+    mov ecx, GRID_SIZE
 @@repeat:
     call printCell, ebx
     add ebx, SIZE Cell
@@ -156,24 +104,29 @@ proc printRow
 endp printRow
 
 proc printBoard
-    arg @@gridSize:dword, @@boardPointer:dword
+    arg @@boardPointer:dword
+    uses ebx, ecx, edx
     
     ; print the header
-    call printHeader, [@@gridSize]
+    call printHeader
     
     ; print the rows
     mov edx, [@@boardPointer]
-    mov ecx, [@@gridSize]
+    mov ecx, GRID_SIZE
 @@repeat:
-    mov ebx, [@@gridSize]
+    mov ebx, GRID_SIZE
     sub ebx, ecx
-    call printRow, ebx, [@@gridSize], edx
-    add edx, [@@gridSize]
+    call printRow, ebx, edx
+    add edx, GRID_SIZE * SIZE Cell
     loop @@repeat
 
     ret
 endp printBoard
 
-DATASEG
+proc promptRow
+    
+endp promptRow
+
+UDATASEG
     newline db 13, 10, '$'
 END
