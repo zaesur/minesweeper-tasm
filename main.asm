@@ -9,11 +9,36 @@ INCLUDE "mouse.inc"
 
 CODESEG
 
+proc handler
+    local @@row:dword, @@col:dword
+    uses eax, ebx, ecx, edx
+
+    and bl, 3
+    jz @@skip
+    
+    sar cx, 3
+    cmp cx, GRID_SIZE
+    jge @@skip
+    
+    sar dx, 3
+    cmp dx, GRID_SIZE
+    jge @@skip
+
+    call revealCell, offset board, cx, dx
+    call drawBoard, offset board
+
+@@skip:
+    ret
+endp handler
+
 proc main
     sti
     cld
 
     call setVideoMode, 13h
+    call mouse_install, offset handler
+    mov ax, 01h
+    int 33h
     call placeMines, offset board
     call drawBoard, offset board
     call waitForSpecificKeystroke, 01Bh
@@ -24,5 +49,5 @@ endp main
 STACK 100h
 
 DATASEG
-    board Cell GRID_SIZE*GRID_SIZE dup(<0,1,0>)
+    board Cell GRID_SIZE*GRID_SIZE dup(<0,0,0>)
 end main

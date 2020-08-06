@@ -65,30 +65,32 @@ proc drawSprite
     mov ecx, SPRITE_WIDTH           ; loop each horizontal pixel
 @@repeatPixel:
     mov al, [ebx]                   ; get the colour stored at ebx
-    stosb
+    stosb                           ; set the pixel
     inc ebx                         ; increment the sprite address
-    loop @@repeatPixel
+    loop @@repeatPixel              ; repeat
     pop ecx                         ; restore the count
     add edi, SCRW - SPRITE_WIDTH    ; move to the start of the next line
-    loop @@repeatLine
+    loop @@repeatLine               ; repeat
 
     ret
 endp drawSprite
 
 proc drawCell
     arg @@cellPointer:dword, @@row:dword, @@col:dword
+    local @@sprite:dword
     uses eax, ebx
 
-    mov ebx, [@@cellPointer]
-    mov eax, offset unrevealed
-    cmp [(Cell ptr ebx).isRevealed], 1
-    jne @@draw
-    movzx eax, [(Cell ptr ebx).count]
-    mov ebx, SPRITE_WIDTH * SPRITE_HEIGHT
-    mul ebx
-    add eax, offset empty
+    mov ebx, [@@cellPointer]                ; fetch the cell
+    mov [@@sprite], offset unrevealed       ; set the sprite to unrevealed
+    cmp [(Cell ptr ebx).isRevealed], 1      ; see if the cell has been revealed
+    jne @@draw                              ; if it is not revealed, draw immediately
+    movzx eax, [(Cell ptr ebx).count]       ; else, calculate the location of the correct sprite
+    mov ebx, SPRITE_WIDTH * SPRITE_HEIGHT   ; ebx := size(sprite)
+    mul ebx                                 ; eax *= size
+    add eax, offset empty                   ; eax += offset
+    mov [@@sprite], eax                     ; @@sprite := eax
 @@draw:
-    call drawSprite, eax, [@@row], [@@col]
+    call drawSprite, [@@sprite], [@@row], [@@col]
 
     ret
 endp drawCell
@@ -98,21 +100,21 @@ proc drawBoard
     local @@row:dword, @@col:dword
     uses ebx, ecx
 
-    mov ebx, [@@boardPointer]
-    mov ecx, GRID_SIZE
+    mov [@@row], 0                  ; start at row 0
+    mov ebx, [@@boardPointer]       ; save the pointer to the board
+    mov ecx, GRID_SIZE              ; initiate ecx to loop rows
 @@rowLoop:
-    mov [@@row], GRID_SIZE
-    sub [@@row], ecx
-    push ecx                    
-    mov ecx, GRID_SIZE
-@@columnLoop:
-    mov [@@col], GRID_SIZE
-    sub [@@col], ecx
+    mov [@@col], 0                  ; start at col 0
+    push ecx                        ; store the row counter for later
+    mov ecx, GRID_SIZE              ; initiate ecx to loop cells
+@@cellLoop:
     call drawCell, ebx, [@@row], [@@col]
-    inc ebx
-    loop @@columnLoop
-    pop ecx
-    loop @@rowLoop
+    add ebx, SIZE Cell              ; prepare the next cell
+    inc [@@col]                     ; increase the col count
+    loop @@cellLoop                 ; repeat
+    pop ecx                         ; restore the row counter
+    inc [@@row]                     ; increase the row count
+    loop @@rowLoop                  ; repeat
 
     ret
 endp drawBoard
