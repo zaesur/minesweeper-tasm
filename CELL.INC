@@ -1,4 +1,5 @@
-GRID_SIZE EQU 6
+GRID_SIZE EQU 8
+MINE_COUNT EQU 10
 
 STRUC Cell
     isMine db 0

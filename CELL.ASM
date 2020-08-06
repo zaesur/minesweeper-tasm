@@ -91,15 +91,15 @@ proc incNeighbours
 endp incNeighbours
 
 proc placeMines
-    arg @@boardPointer:dword, @@numberOfMines:dword
-    local @@x, @@y
+    arg @@boardPointer:dword
+    local @@x:dword, @@y:dword
     uses eax, ebx, ecx, edx
 
     ; initialize the RNG
     call rand_init
     
     ; iterate the number of mines
-    mov ecx, [@@numberOfMines]
+    mov ecx, MINE_COUNT
     jecxz @@skip
 @@placeMine:
     ; generate a random x and y coordinate
