@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Settings - Edit the names of the object and executable files.
-objects1 = rand.obj cell.obj io.obj mouse.obj main.obj
+objects1 = rand.obj cell.obj mouse.obj io.obj main.obj
 dest = main.exe
 
 # =============================================================================

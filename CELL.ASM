@@ -12,16 +12,16 @@ INCLUDE "rand.inc"
 CODESEG
 
 proc validateIndices
-    arg @@x:dword, @@y
+    arg @@row:dword, @@col:dword
     mov eax, 0
 
-    cmp [@@x], 0
+    cmp [@@row], 0
     jl @@skip
-    cmp [@@x], GRID_SIZE
+    cmp [@@row], GRID_SIZE
     jge @@skip
-    cmp [@@y], 0
+    cmp [@@col], 0
     jl @@skip
-    cmp [@@y], GRID_SIZE
+    cmp [@@col], GRID_SIZE
     jge @@skip
     mov eax, 1
 
@@ -30,14 +30,14 @@ proc validateIndices
 endp validateIndices
 
 proc getCell
-    arg @@boardPointer:dword, @@x:dword, @@y:dword
+    arg @@boardPointer:dword, @@row:dword, @@col:dword
     uses eax, ecx
 
     ; EAX <- (rowIndex * gridSize) + columnIndex
-    mov eax, [@@x]
+    mov eax, [@@row]
     mov ecx, GRID_SIZE
     mul ecx
-    add eax, [@@y]
+    add eax, [@@col]
 
     ; EBX <- boardPointer + (EAX * cellSize)
     mov ecx, SIZE Cell
@@ -49,16 +49,16 @@ proc getCell
 endp getCell
 
 proc incCellCount
-    arg @@boardPointer:dword, @@x:dword, @@y:dword
+    arg @@boardPointer:dword, @@row:dword, @@col:dword
     uses eax, ebx
 
     ; check if the indices are within boundaries
-    call validateIndices, [@@x], [@@y]
+    call validateIndices, [@@row], [@@col]
     cmp eax, 0
     je @@skip
 
     ; increment the cell count
-    call getCell, [@@boardPointer], [@@x], [@@y]
+    call getCell, [@@boardPointer], [@@row], [@@col]
     inc [(Cell ptr ebx).count]
 
 @@skip:
@@ -66,25 +66,25 @@ proc incCellCount
 endp incCellCount
 
 proc incNeighbours
-    arg @@boardPointer:dword, @@x:dword, @@y:dword
+    arg @@boardPointer:dword, @@row:dword, @@col:dword
     uses ecx
     
     ; start from (x-1, y-1)
-    dec [@@x]
-    dec [@@y]
+    dec [@@row]
+    dec [@@col]
 
     mov ecx, 3
 @@outerloop:
     push ecx
-    push [@@x]
+    push [@@row]
     mov ecx, 3
 @@innerloop:
-    call incCellCount, [@@boardPointer], [@@x], [@@y]
-    inc [@@x]
+    call incCellCount, [@@boardPointer], [@@row], [@@col]
+    inc [@@row]
     loop @@innerloop
-    pop [@@x]
+    pop [@@row]
     pop ecx
-    inc [@@y]
+    inc [@@col]
     loop @@outerloop
 
     ret
@@ -92,7 +92,7 @@ endp incNeighbours
 
 proc placeMines
     arg @@boardPointer:dword
-    local @@x:dword, @@y:dword
+    local @@row:dword, @@col:dword
     uses eax, ebx, ecx, edx
 
     ; initialize the RNG
@@ -107,13 +107,13 @@ proc placeMines
     xor edx, edx
     mov bx, GRID_SIZE
     div bx
-    mov [@@x], edx
+    mov [@@row], edx
     call rand16
     div bx
-    mov [@@y], edx
+    mov [@@col], edx
     
     ; get the cell at (x, y)
-    call getCell, [@@boardPointer], [@@x], [@@y]
+    call getCell, [@@boardPointer], [@@row], [@@col]
 
     ; if the cell already contains a mine, try again
     cmp [(Cell ptr ebx).isMine], 1
@@ -121,7 +121,7 @@ proc placeMines
 
     ; else place the mine and increment its neighbours
     mov [(Cell ptr ebx).isMine], 1
-    call incNeighbours, [@@boardPointer], [@@x], [@@y]
+    call incNeighbours, [@@boardPointer], [@@row], [@@col]
     loop @@placeMine
 
 @@skip:
@@ -129,15 +129,15 @@ proc placeMines
 endp placeMines
 
 proc revealCell
-    arg @@boardPointer:dword, @@x:dword, @@y:dword
+    arg @@boardPointer:dword, @@row:dword, @@col:dword
     uses eax, ebx, ecx
 
-    call validateIndices, [@@x], [@@y]
+    call validateIndices, [@@row], [@@col]
     cmp eax, 0
     je @@skip
     
     ; get the cell in EBX
-    call getCell, [@@boardPointer], [@@x], [@@y]
+    call getCell, [@@boardPointer], [@@row], [@@col]
 
     ; check if the cell has already been revealed, else reveal
     cmp [(Cell ptr ebx).isRevealed], 1
@@ -146,16 +146,24 @@ proc revealCell
 
     ; if there are no neighbouring mines (count = 0), flood the neighbouring cells
     cmp [(Cell ptr ebx).count], 0
-    jg @@skip
-    dec [@@x]
-    call revealCell, [@@boardPointer], [@@x], [@@y]
-    add [@@x], 2
-    call revealCell, [@@boardPointer], [@@x], [@@y]
-    dec [@@x]
-    dec [@@y]
-    call revealCell, [@@boardPointer], [@@x], [@@y]
-    add [@@y], 2
-    call revealCell, [@@boardPointer], [@@x], [@@y]
+    jne @@skip
+    
+    dec [@@row]
+    dec [@@col]
+
+    mov ecx, 3
+@@outerloop:
+    push ecx
+    push [@@row]
+    mov ecx, 3
+@@innerloop:
+    call revealCell, [@@boardPointer], [@@row], [@@col]
+    inc [@@row]
+    loop @@innerloop
+    pop [@@row]
+    pop ecx
+    inc [@@col]
+    loop @@outerloop
 
 @@skip:
     ret

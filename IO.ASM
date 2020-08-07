@@ -84,13 +84,16 @@ proc drawCell
 
     mov ebx, [@@cellPointer]                ; fetch the cell
     mov [@@sprite], offset unrevealed       ; set the sprite to unrevealed
-    cmp [(Cell ptr ebx).isRevealed], 1      ; see if the cell has been revealed
+    cmp [(Cell ptr ebx).isRevealed], 1      ; check if the cell has been revealed
     jne @@draw                              ; if it is not revealed, draw immediately
+    mov [@@sprite], offset mine             ; set the sprite to mine
+    cmp [(Cell ptr ebx).isMine], 1          ; check if the cell is a mine
+    je @@draw                               ; if it is a mine, draw immediately
     movzx eax, [(Cell ptr ebx).count]       ; else, calculate the location of the correct sprite
     mov ebx, SPRITE_WIDTH * SPRITE_HEIGHT   ; ebx := size(sprite)
     mul ebx                                 ; eax *= size
     add eax, offset empty                   ; eax += offset
-    mov [@@sprite], eax                     ; @@sprite := eax
+    mov [@@sprite], eax                     ; set the sprite to the address at eax
 @@draw:
     call drawSprite, [@@sprite], [@@row], [@@col]
 

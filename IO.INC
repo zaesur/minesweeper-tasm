@@ -17,6 +17,7 @@ C5 EQU 027h
 C6 EQU 025h
 C7 EQU 023h
 C8 EQU 021h
+CM EQU 020h
 
 ; EXPORTS
 GLOBAL	setVideoMode:PROC, \
@@ -124,4 +125,14 @@ DATASEG
                BG, MG, MG, C8, C8, MG, MG, MG,\
                BG, MG, C8, MG, MG, C8, MG, MG,\
                BG, MG, MG, C8, C8, MG, MG, MG,\
+               BG, MG, MG, MG, MG, MG, MG, MG
+        
+        mine db\
+               BG, BG, BG, BG, BG, BG, BG, BG,\
+               BG, MG, MG, MG, MG, MG, MG, MG,\
+               BG, MG, CM, MG, MG, MG, CM, MG,\
+               BG, MG, CM, CM, MG, CM, CM, MG,\
+               BG, MG, CM, MG, CM, MG, CM, MG,\
+               BG, MG, CM, MG, MG, MG, CM, MG,\
+               BG, MG, CM, MG, MG, MG, CM, MG,\
                BG, MG, MG, MG, MG, MG, MG, MG
