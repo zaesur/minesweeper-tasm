@@ -9,7 +9,7 @@ INCLUDE "mouse.inc"
 
 CODESEG
 
-call mouseHandler
+proc mouseHandler
     local @@row:dword, @@col:dword
     uses eax, ebx, ecx, edx
 

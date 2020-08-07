@@ -57,8 +57,7 @@ proc drawSprite
     mul ebx
     add edi, eax
     mov eax, [@@col]
-    mov ebx, 8
-    mul ebx
+    shl eax, 3
     add edi, eax
 
     mov ecx, SPRITE_HEIGHT          ; loop each vertical pixel
