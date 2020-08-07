@@ -36,6 +36,9 @@ endp mouseHandler
 proc main
     sti
     cld
+    
+    push ds
+    pop es
 
     call setVideoMode, 13h
     call mouse_install, offset mouseHandler
