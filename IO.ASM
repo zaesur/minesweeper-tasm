@@ -5,6 +5,7 @@ ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 
 INCLUDE "io.inc"
 INCLUDE "cell.inc"
+INCLUDE "mouse.inc"
 
 ;=============================================================================
 ; CODE
@@ -38,6 +39,8 @@ proc terminateProcess
     uses eax
 
     call setVideoMode, 03h
+    call mouse_uninstall
+
     mov	ax, 04C00h
     int 21h
 
