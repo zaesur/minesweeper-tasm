@@ -27,7 +27,12 @@ proc mouseHandler
     mov [@@row], edx
 
     call revealCell, offset board, [@@row], [@@col]
+
+    mov ax, 02h              ; hide the mouse
+    int 33h
     call drawBoard, offset board
+    mov ax, 01h             ; show the mouse
+    int 33h
 
 @@skip:
     ret
@@ -42,7 +47,7 @@ proc main
 
     call setVideoMode, 13h
     call mouse_install, offset mouseHandler
-    mov ax, 01h
+    mov ax, 01h              ; show the mouse
     int 33h
     call placeMines, offset board
     call drawBoard, offset board
