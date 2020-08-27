@@ -26,8 +26,15 @@ proc mouseHandler
     jge @@skip
     mov [@@row], edx
 
+    call getCell, offset board, [@@row], [@@col]
+    cmp [(Cell ptr ebx).isMine], 1
+    jne @@revealCell
+    call revealMines, offset board
+    jmp @@draw
+@@revealCell:
     call revealCell, offset board, [@@row], [@@col]
-
+    
+@@draw:
     mov ax, 02h              ; hide the mouse
     int 33h
     call drawBoard, offset board

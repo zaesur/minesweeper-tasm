@@ -8,4 +8,6 @@ STRUC Cell
 ENDS Cell
 
 GLOBAL	placeMines:PROC, \
-        revealCell:PROC
+        getCell:PROC, \
+        revealCell:PROC, \
+        revealMines:PROC

@@ -130,7 +130,7 @@ endp placeMines
 
 proc revealCell
     arg @@boardPointer:dword, @@row:dword, @@col:dword
-    uses eax, ebx, ecx
+    uses ebx, ecx
 
     call validateIndices, [@@row], [@@col]
     cmp eax, 0
@@ -139,7 +139,7 @@ proc revealCell
     ; get the cell in EBX
     call getCell, [@@boardPointer], [@@row], [@@col]
 
-    ; check if the cell has already been revealed, else reveal
+    ; do nothing if the cell has already been revealed, else continue
     cmp [(Cell ptr ebx).isRevealed], 1
     je @@skip
     mov [(Cell ptr ebx).isRevealed], 1
@@ -168,5 +168,21 @@ proc revealCell
 @@skip:
     ret
 endp revealCell
+
+proc revealMines
+    arg @@boardPointer:dword
+    uses ebx, ecx
+
+    mov ecx, GRID_SIZE * GRID_SIZE
+    mov ebx, [@@boardPointer]
+@@repeat:
+    cmp [(Cell ptr ebx).isMine], 1
+    jne @@skip
+    mov [(Cell ptr ebx).isRevealed], 1
+@@skip:
+    add ebx, SIZE Cell
+    loop @@repeat
+    ret
+endp revealMines
 
 END
