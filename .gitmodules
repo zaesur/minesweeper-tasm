@@ -1,0 +1,3 @@
+[submodule "tasm"]
+	path = tasm
+	url = git@github.com:qb40/tasm.git
